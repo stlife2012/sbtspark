@@ -17,6 +17,7 @@ import org.apache.spark.mllib.linalg.distributed.RowMatrix
 
 import org.apache.spark.mllib.optimization.SimpleUpdater
 import org.apache.spark.mllib.optimization.SquaredL2Updater
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 
 object DataApp {
   def main(arg:Array[String]): Unit ={
@@ -124,6 +125,9 @@ object DataApp {
 
   def lrModelTrain(): Unit ={
     val data = dataStd()
+    val split_data = data.randomSplit(Array(0.8,0.2))
+    val train_data = split_data(0)
+    val test_data = split_data(1)
     //迭代次数参数评估
 //    val allMetrics = Seq(5,10,20,30,40).map(step => {
 //      val lr = new LogisticRegressionWithSGD()
@@ -134,8 +138,12 @@ object DataApp {
 //        (model.predict(line.features),line.label)
 //      })
 //      val metrics = new BinaryClassificationMetrics(predAndTrue)
-//      (step,metrics.areaUnderPR(),metrics.areaUnderROC())
+//      val mulMetrics = new MulticlassMetrics(predAndTrue)
+//      (step,metrics.areaUnderPR(),metrics.areaUnderROC(),mulMetrics.accuracy,mulMetrics.weightedRecall)
 //    })
+//    allMetrics.foreach{case (step,pr,roc,acc,recall)=>{
+//      println(f"名称：${step} PR:${pr * 100}%2.4f%% ROC:${roc * 100.0}%2.4f%% ACC:${acc * 100.0}%2.4f%% RECALL:${recall * 100.0}%2.4f%%")
+//    }}
     //步长参数评估
 //    val allMetrics = Seq(0.001,0.01,0.1,1,10).map(step => {
 //      val lr = new LogisticRegressionWithSGD()
@@ -152,18 +160,19 @@ object DataApp {
     //  L2正则化参数评估
     val allMetrics = Seq(0.001,0.01,0.1,1,10).map(step => {
       val lr = new LogisticRegressionWithSGD()
-      lr.optimizer.setNumIterations(30).setUpdater(new SquaredL2Updater).setStepSize(step)
-      val model = lr.run(data)
+      lr.optimizer.setNumIterations(30).setUpdater(new SquaredL2Updater).setStepSize(step).setRegParam(2.0)
+      val model = lr.run(train_data)
 
-      val predAndTrue = data.map(line=>{
+      val predAndTrue = test_data.map(line=>{
         (model.predict(line.features),line.label)
       })
       val metrics = new BinaryClassificationMetrics(predAndTrue)
-      (step,metrics.areaUnderPR(),metrics.areaUnderROC())
+      val mulMetrics = new MulticlassMetrics(predAndTrue)
+      (step,metrics.areaUnderPR(),metrics.areaUnderROC(),mulMetrics.accuracy,mulMetrics.weightedRecall)
     })
 
-    allMetrics.foreach{case (step,pr,roc)=>{
-      println(f"名称：${step} PR:${pr * 100}%2.4f%% ROC:${roc * 100.0}%2.4f%%")
+    allMetrics.foreach{case (step,pr,roc,acc,recall)=>{
+      println(f"名称：${step} PR:${pr * 100}%2.4f%% ROC:${roc * 100.0}%2.4f%% ACC:${acc * 100.0}%2.4f%% RECALL:${recall * 100.0}%2.4f%%")
     }}
   }
 }

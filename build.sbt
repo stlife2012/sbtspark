@@ -6,6 +6,9 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.apache.spark" % "spark-mllib_2.11" % "2.2.0"
 libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % "2.2.0"
+libraryDependencies += "org.scalanlp" %% "breeze" % "0.13.2"
+
+libraryDependencies += "org.apache.spark" %% "spark-streaming" % "2.2.0"
 
 //指定主函数
 //mainClassinCompile := Some("com.stlife.Hello")

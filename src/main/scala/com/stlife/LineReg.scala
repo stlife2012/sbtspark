@@ -8,34 +8,25 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object LineReg {
   def main(args: Array[String]){
+//    data_frame()
+    val input_path = "F:\\02_data\\uci\\aps\\train.csv"
+    var sc = new SparkContext("local[2]","csv")
+    var rdd = sc.textFile(input_path)
+    rdd.take(10).foreach(println)
+
+  }
+
+  def data_frame(): Unit ={
     val input_path = "F:\\02_data\\uci\\aps\\train.csv"
     val sqlContext = SparkSession.builder()
       .appName("LingReg").master("local[1]")
       .getOrCreate()
     val data = sqlContext.read.csv(input_path)
-//    var table = data.createOrReplaceTempView("train")
-//    data.printSchema()
-//    println(data.schema)
+    println("数量" + data.count())
 //    data.columns.foreach(println)
-//    data.write.text("D:\\data\\table1.txt")
-//    sqlContext.sql("select * from train").show()
-//    val topData = data.take(10)
-//    topData.foreach(println)
-//    csv_data()
-//    var rdd_data = data.map(row =>create_label_point(row.toString()))
-//    val topData = data.take(10)
-//    data.saveAsTextFile("train.txt")
-//    data.write
-//      .save("D:\\data\\table1.txt")
-////    data.select()
-    val rdd = data.rdd
-    rdd.map(row=>row.mkString())
-
-//    var rdd = data.map(row=>row.mkString(","))
-    val len = data.columns.length
-//    val lable = rdd.map(row => create_lp(row,len))
-
-//    lable.take(10).foreach(println)
+    data.createOrReplaceTempView("train")
+//    data.select("_c1").take(5).foreach(println)
+    sqlContext.sql("select * from train").show()
   }
 
   def create_lp(line:Row,len:Int):LabeledPoint = {
